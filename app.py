@@ -5,26 +5,31 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 app = FastAPI()
 
+# Load lightweight CSV
 movies = pd.read_csv("movies_processed.csv")
-cv = CountVectorizer(max_features=5000, stop_words="english")
+
+# Build vectors (this runs once)
+cv = CountVectorizer(max_features=2000, stop_words="english")
 vectors = cv.fit_transform(movies["tags"]).toarray()
+
+# Compute similarity matrix (smaller, manageable)
 similarity = cosine_similarity(vectors)
 
 def recommend(movie):
-    movie = movie.title()
-    index = movies[movies["title"] == movie].index
+    movie = movie.lower()
+    movies["title_lower"] = movies["title"].str.lower()
 
-    if len(index) == 0:
-        return []
+    if movie not in movies["title_lower"].values:
+        return ["Movie not found"]
 
-    index = index[0]
+    index = movies[movies["title_lower"] == movie].index[0]
     distances = similarity[index]
 
     movies_list = sorted(
         list(enumerate(distances)),
         reverse=True,
         key=lambda x: x[1]
-    )[1:6]
+    )[1:4]
 
     return [movies.iloc[i[0]].title for i in movies_list]
 
@@ -34,7 +39,4 @@ def home():
 
 @app.get("/recommend")
 def recommend_movie(movie: str):
-    result = recommend(movie)
-    if not result:
-        return {"error": "Movie not found"}
-    return {"recommendations": result}
+    return recommend(movie)
