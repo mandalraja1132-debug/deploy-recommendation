@@ -1,18 +1,16 @@
-from fastapi import FastAPI
+import streamlit as st
 import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-app = FastAPI()
+st.title("🎬 Movie Recommendation System")
 
-# Load lightweight CSV
+# Load data
 movies = pd.read_csv("movies_processed.csv")
 
-# Build vectors (this runs once)
+# Build vectors
 cv = CountVectorizer(max_features=2000, stop_words="english")
 vectors = cv.fit_transform(movies["tags"]).toarray()
-
-# Compute similarity matrix (smaller, manageable)
 similarity = cosine_similarity(vectors)
 
 def recommend(movie):
@@ -33,10 +31,12 @@ def recommend(movie):
 
     return [movies.iloc[i[0]].title for i in movies_list]
 
-@app.get("/")
-def home():
-    return "Movie Recommendation API is running"
+# User input
+movie_name = st.text_input("Enter a movie name")
 
-@app.get("/recommend")
-def recommend_movie(movie: str):
-    return recommend(movie)
+if st.button("Recommend"):
+    recommendations = recommend(movie_name)
+
+    st.subheader("Recommended Movies:")
+    for movie in recommendations:
+        st.write(movie)
