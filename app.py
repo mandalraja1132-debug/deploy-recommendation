@@ -5,10 +5,8 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 st.title("🎬 Movie Recommendation System")
 
-# Load data
 movies = pd.read_csv("movies_processed.csv")
 
-# Build vectors
 cv = CountVectorizer(max_features=2000, stop_words="english")
 vectors = cv.fit_transform(movies["tags"]).toarray()
 similarity = cosine_similarity(vectors)
@@ -31,7 +29,6 @@ def recommend(movie):
 
     return [movies.iloc[i[0]].title for i in movies_list]
 
-# User input
 movie_name = st.text_input("Enter a movie name")
 
 if st.button("Recommend"):
